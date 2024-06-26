@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Road Accident Scatter Plot</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+  </head>
+  <body>
+    <!-- Create a div where the graph will take place -->
+    <div id="my_dataviz"></div>
+
+    <script>
+      // set the dimensions and margins of the graph
+      const margin = {
+        top: 10,
+        right: 30,
+        bottom: 70,
+        left: 60,
+      };
+      const width = 600 - margin.left - margin.right;
+      const height = 400 - margin.top - margin.bottom;
+
+      // append the svg object to the body of the page
+      const svg = d3
+        .select('#my_dataviz')
+        .append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+        .attr(
+          'transform',
+          `translate(${margin.left},${margin.top})`,
+        );
+
+      // Load data from CSV file hosted on Gist
+      d3.text(
+        'https://gist.githubusercontent.com/rajkodavati/f1a3aefcc19e1bcb5432ce4db2f28476/raw/f36dcc28b36886e35ef4ffe8ac79102ebb19bbf0/road.csv',
+      ).then(function (data) {
+        // Parse the CSV data
+        const parsedData = d3.csvParse(data);
+
+        // Extracting the required columns
+        const xData = parsedData.map((d) => d.Road_Type);
+        const yData = parsedData.map(
+          (d) => +d.Number_of_Casualties,
+        );
+
+        // Add X axis
+        const x = d3
+          .scaleBand()
+          .domain(xData)
+          .range([0, width]);
+
+        // Add Y axis
+        const y = d3
+          .scaleLinear()
+          .domain([0, d3.max(yData)])
+          .nice()
+          .range([height, 0]);
+
+        // Draw circles
+        svg
+          .selectAll('circle')
+          .data(parsedData)
+          .enter()
+          .append('circle')
+          .attr(
+            'cx',
+            (d) => x(d.Road_Type) + x.bandwidth() / 2,
+          )
+          .attr('cy', (d) => y(+d.Number_of_Casualties))
+          .attr('r', 5)
+          .attr('fill', '#69b3a2');
+
+        // Add X axis
+        svg
+          .append('g')
+          .attr('transform', `translate(0, ${height})`)
+          .call(d3.axisBottom(x))
+          .selectAll('text')
+          .attr('transform', 'translate(-10,0)rotate(-45)')
+          .style('text-anchor', 'end');
+
+        // Add Y axis
+        svg.append('g').call(d3.axisLeft(y));
+      });
+    </script>
+  </body>
+</html>
